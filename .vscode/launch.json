@@ -1,0 +1,46 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Prepare Protein Data",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/data/prepare_protein_data.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--input-csv",
+                "${workspaceFolder}/data/vhh_sequences.csv",
+                "--output-jsonl",
+                "${workspaceFolder}/data/vhh_sequences.jsonl",
+                "--sequence-column",
+                "sequence"
+            ],
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Tokenize with ESM2",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/tools/preprocess_data.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--input",
+                "${workspaceFolder}/data/vhh_sequences.jsonl",
+                "--output-prefix",
+                "${workspaceFolder}/data/vhh_data",
+                "--tokenizer-type",
+                "HuggingFaceTokenizer",
+                "--tokenizer-model",
+                "facebook/esm2_t33_650M_UR50D",
+                "--workers",
+                "4",
+                "--append-eod",
+                "--json-keys",
+                "text"
+            ],
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

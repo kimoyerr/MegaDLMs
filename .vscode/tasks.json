@@ -1,0 +1,198 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Prepare Protein Data - Full Pipeline",
+            "type": "shell",
+            "command": "${workspaceFolder}/data/preprocess_protein_pipeline.sh",
+            "args": [
+                "${input:inputCsvPath}",
+                "${input:outputDir}",
+                "${input:sequenceColumn}"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "MAX_LENGTH": "${input:maxLength}",
+                    "MIN_LENGTH": "${input:minLength}",
+                    "WORKERS": "32"
+                }
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "CSV to JSONL Only",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "${workspaceFolder}/data/prepare_protein_data.py",
+                "--input-csv", "${input:inputCsvPath}",
+                "--output-jsonl", "${input:outputJsonlPath}",
+                "--sequence-column", "${input:sequenceColumn}",
+                "--max-length", "${input:maxLength}",
+                "--min-length", "${input:minLength}"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Tokenize JSONL - Training",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "${workspaceFolder}/tools/preprocess_data.py",
+                "--input", "${input:trainJsonl}",
+                "--output-prefix", "${env:DATASETS_DIR}/protein/train_data",
+                "--tokenizer-type", "HuggingFaceTokenizer",
+                "--tokenizer-model", "facebook/esm2_t33_650M_UR50D",
+                "--workers", "32",
+                "--append-eod",
+                "--json-keys", "text"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Tokenize JSONL - Validation",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "${workspaceFolder}/tools/preprocess_data.py",
+                "--input", "${input:validJsonl}",
+                "--output-prefix", "${env:DATASETS_DIR}/protein/valid_data",
+                "--tokenizer-type", "HuggingFaceTokenizer",
+                "--tokenizer-model", "facebook/esm2_t33_650M_UR50D",
+                "--workers", "32",
+                "--append-eod",
+                "--json-keys", "text"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Count Tokens - Training Data",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "${workspaceFolder}/tools/count_tokens.py",
+                "--weighted-prefix", "1.0 ${env:DATASETS_DIR}/protein/train_data_text_document"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Count Tokens - Validation Data",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "${workspaceFolder}/tools/count_tokens.py",
+                "--weighted-prefix", "1.0 ${env:DATASETS_DIR}/protein/valid_data_text_document"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Make Scripts Executable",
+            "type": "shell",
+            "command": "chmod",
+            "args": [
+                "+x",
+                "${workspaceFolder}/data/prepare_protein_data.py",
+                "${workspaceFolder}/data/preprocess_protein_pipeline.sh",
+                "${workspaceFolder}/examples/dlm_training/dlm_pretrain_1.7b_protein.sh"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "inputCsvPath",
+            "type": "promptString",
+            "description": "Path to input CSV file",
+            "default": "${workspaceFolder}/data/protein_sequences.csv"
+        },
+        {
+            "id": "outputDir",
+            "type": "promptString",
+            "description": "Output directory for preprocessed data",
+            "default": "${env:DATASETS_DIR}/protein"
+        },
+        {
+            "id": "outputJsonlPath",
+            "type": "promptString",
+            "description": "Path to output JSONL file",
+            "default": "${workspaceFolder}/data/output/sequences.jsonl"
+        },
+        {
+            "id": "trainJsonl",
+            "type": "promptString",
+            "description": "Path to training JSONL file",
+            "default": "${env:DATASETS_DIR}/protein/train.jsonl"
+        },
+        {
+            "id": "validJsonl",
+            "type": "promptString",
+            "description": "Path to validation JSONL file",
+            "default": "${env:DATASETS_DIR}/protein/valid.jsonl"
+        },
+        {
+            "id": "sequenceColumn",
+            "type": "promptString",
+            "description": "Name of the sequence column in CSV",
+            "default": "sequence"
+        },
+        {
+            "id": "maxLength",
+            "type": "promptString",
+            "description": "Maximum sequence length",
+            "default": "1024"
+        },
+        {
+            "id": "minLength",
+            "type": "promptString",
+            "description": "Minimum sequence length (leave empty for no limit)",
+            "default": ""
+        }
+    ]
+}
