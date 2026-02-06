@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  megadlms:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: megadlms:latest
+    container_name: megadlms-protein
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - CUDA_VISIBLE_DEVICES=0
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .:/workspace/MegaDLMs
+      - ./data:/workspace/MegaDLMs/data
+      - ./checkpoints:/workspace/MegaDLMs/checkpoints
+      - ./logs:/workspace/MegaDLMs/logs
+    working_dir: /workspace/MegaDLMs
+    shm_size: '16gb'
+    stdin_open: true
+    tty: true
+    command: /bin/bash
