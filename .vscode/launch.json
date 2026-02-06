@@ -41,6 +41,93 @@
             ],
             "justMyCode": false,
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Pretrain DiffLM - Protein (Debug)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/pretrain_difflm.py",
+            "console": "integratedTerminal",
+            "args": [
+                // Model Architecture Args (1.7B protein model)
+                "--seq-length", "1024",
+                "--attention-backend", "flash",
+                "--attention-softmax-in-fp32",
+                "--attention-dropout", "0.0",
+                "--hidden-dropout", "0.0",
+                "--no-bias-gelu-fusion",
+                "--no-bias-dropout-fusion",
+                "--no-bias-swiglu-fusion",
+                "--num-layers", "28",
+                "--hidden-size", "2048",
+                "--num-attention-heads", "16",
+                "--ffn-hidden-size", "6144",
+                "--swiglu",
+                "--vocab-size", "33",
+                "--normalization", "RMSNorm",
+                "--max-position-embeddings", "1024",
+                "--norm-epsilon", "1e-6",
+                "--rotary-base", "10000",
+                "--disable-bias-linear",
+                "--position-embedding-type", "rope",
+                "--qk-layernorm",
+                "--untie-embeddings-and-output-weights",
+
+                // Protein Language Model Args
+                "--model-running-mode", "difflm-noshift",
+                "--base-model", "vanilla",
+                "--mask-token", "32",
+                "--attention-mask-type", "no_mask",
+
+                // Training Args (simplified for debugging)
+                "--micro-batch-size", "1",
+                "--global-batch-size", "4",
+                "--train-iters", "100",
+                "--weight-decay", "0.1",
+                "--adam-beta1", "0.9",
+                "--adam-beta2", "0.95",
+                "--init-method-std", "0.02",
+                "--clip-grad", "1.0",
+                "--bf16",
+                "--lr", "0.0002",
+                "--min-lr", "0.00002",
+                "--lr-decay-style", "WSD",
+                "--lr-warmup-iters", "10",
+                "--lr-decay-iters", "100",
+                "--lr-wsd-decay-style", "exponential",
+                "--lr-wsd-decay-iters", "50",
+
+                // Model Parallel Args (single GPU)
+                "--tensor-model-parallel-size", "1",
+                "--pipeline-model-parallel-size", "1",
+
+                // Data Args (update paths as needed)
+                "--train-data-path", "${workspaceFolder}/data/vhh_data",
+                "--valid-data-path", "${workspaceFolder}/data/vhh_data",
+                "--data-cache-path", "${workspaceFolder}/data/cache",
+                "--tokenizer-type", "HuggingFaceTokenizer",
+                "--tokenizer-model", "facebook/esm2_t33_650M_UR50D",
+
+                // Eval and Logging Args
+                "--log-interval", "5",
+                "--log-params-norm",
+                "--log-num-zeros-in-grad",
+                "--log-throughput",
+                "--save-interval", "50",
+                "--eval-interval", "50",
+                "--eval-iters", "10",
+                "--save", "${workspaceFolder}/checkpoints/protein_debug",
+                "--load", "${workspaceFolder}/checkpoints/protein_debug",
+                "--tensorboard-dir", "${workspaceFolder}/logs/protein_debug/tensorboard",
+                "--ckpt-format", "torch_dist",
+                "--wandb-mode", "disabled"
+            ],
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "CUDA_DEVICE_MAX_CONNECTIONS": "1"
+            }
         }
     ]
 }
