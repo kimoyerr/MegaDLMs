@@ -11,6 +11,20 @@ ENV PYTHONUNBUFFERED=1
 # Update pip
 RUN pip install --upgrade pip
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    git \
+    curl \
+    wget \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get install -y libdbus-1-dev pkg-config \
+    libglib2.0-dev libdbus-1-dev pkg-config \ 
+    cmake \
+    libcairo2-dev
+
+
 # Install transformers and related dependencies
 RUN pip install --no-cache-dir \
     transformers \
